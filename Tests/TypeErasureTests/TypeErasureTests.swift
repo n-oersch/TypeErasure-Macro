@@ -19,12 +19,12 @@ final class TypeErasureTests: XCTestCase {
         assertMacroExpansion(
             """
             @TypeErasure([ModelA, ModelB])
-            protocol Proto: Equatable {
+            protocol Proto {
             }
             """,
             expandedSource:
             """
-            protocol Proto: Equatable {
+            protocol Proto {
             }
 
             enum AnyProto {
@@ -54,14 +54,14 @@ final class TypeErasureTests: XCTestCase {
         assertMacroExpansion(
             """
             @TypeErasure([ModelA, ModelB])
-            protocol Proto: Equatable {
+            protocol Proto {
                 var name: String { get set }
                 var date: Double { get set }
             }
             """,
             expandedSource:
             """
-            protocol Proto: Equatable {
+            protocol Proto {
                 var name: String { get set }
                 var date: Double { get set }
             }
@@ -98,7 +98,7 @@ final class TypeErasureTests: XCTestCase {
         assertMacroExpansion(
             """
             @TypeErasure([ModelA, ModelB])
-            protocol Proto: Equatable {
+            protocol Proto {
                 func test()
                 func parameters(with: String)
                 func multiple(first: Bool, second: String) -> Double
@@ -106,7 +106,7 @@ final class TypeErasureTests: XCTestCase {
             """,
             expandedSource:
             """
-            protocol Proto: Equatable {
+            protocol Proto {
                 func test()
                 func parameters(with: String)
                 func multiple(first: Bool, second: String) -> Double
@@ -142,12 +142,47 @@ final class TypeErasureTests: XCTestCase {
         #endif
     }
     
-    func testAll() throws {
+    func testConformance() {
         #if canImport(TypeErasureMacros)
         assertMacroExpansion(
             """
             @TypeErasure([ModelA, ModelB])
             protocol Proto: Equatable {
+            }
+            """,
+            expandedSource:
+            """
+            protocol Proto: Equatable {
+            }
+            
+            enum AnyProto: Equatable {
+              case modelA(ModelA)
+              case modelB(ModelB)
+            
+              var value: any Proto {
+                  switch self {
+                  case .modelA(let model as any Proto),
+                  .modelB(let model as any Proto):
+                      return model
+                  }
+              }
+            
+            
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testAll() throws {
+        #if canImport(TypeErasureMacros)
+        assertMacroExpansion(
+            """
+            @TypeErasure([ModelA, ModelB])
+            protocol Proto: Equatable, Identifiable {
                 var name: String { get set }
                 var date: Double { get set }
                 
@@ -157,7 +192,7 @@ final class TypeErasureTests: XCTestCase {
             """,
             expandedSource:
             """
-            protocol Proto: Equatable {
+            protocol Proto: Equatable, Identifiable {
                 var name: String { get set }
                 var date: Double { get set }
                 
@@ -165,7 +200,7 @@ final class TypeErasureTests: XCTestCase {
                 func multiple(first: Bool, second: String) -> Double
             }
             
-            enum AnyProto {
+            enum AnyProto: Equatable, Identifiable {
               case modelA(ModelA)
               case modelB(ModelB)
             

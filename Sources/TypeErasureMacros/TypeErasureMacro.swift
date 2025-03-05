@@ -62,7 +62,7 @@ public struct TypeErasureMacro: PeerMacro {
         let protocolName = originProtocol.name.trimmed
         let erasedName: TokenSyntax = "Any\(protocolName)"
         return ["""
-        enum \(erasedName) {
+        enum \(erasedName)\(addedConformances(of: originProtocol)) {
           \(enumCasesDefinition(with: listOfTypes))
         
           \(protocolVarDefinition(with: listOfTypes, as: protocolName))
@@ -70,6 +70,20 @@ public struct TypeErasureMacro: PeerMacro {
           \(passthroughMembersDefinitions(from: originProtocol.memberBlock.members))
         }
         """]
+    }
+    
+    private static func addedConformances(of declaration: ProtocolDeclSyntax) -> TokenSyntax {
+        guard let conformanceTypes = declaration.inheritanceClause?.inheritedTypes else {
+            // protocol doesn't has any special conformances
+            return ""
+        }
+        
+        var conformancesCode = ": "
+        conformanceTypes.forEach { type in
+            conformancesCode += "\(type.type), "
+        }
+        conformancesCode.removeLast(3)
+        return TokenSyntax(stringLiteral: conformancesCode)
     }
     
     /// creates the enum definition of all Types with its type as parameter
