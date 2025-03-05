@@ -98,6 +98,10 @@ public struct TypeErasureMacro: PeerMacro {
         var protocolDefinitions = ""
         for memberItem in protocolMembers {
             protocolDefinitions += passthroughVariableDefinition(from: memberItem)
+            protocolDefinitions += passthroughFunctionDefinition(from: memberItem)
+        }
+        if protocolDefinitions.count > 0 {
+            protocolDefinitions.removeLast()
         }
         return TokenSyntax(stringLiteral: protocolDefinitions)
     }
@@ -112,9 +116,16 @@ public struct TypeErasureMacro: PeerMacro {
     }
     
     /// Creates a Definition of a function with the same name as in the protocol, that just passes through the function from all the enum values
-    private static func buildPassthroughFunctionDefinition(from item: MemberBlockItemListSyntax.Element) -> String {
+    private static func passthroughFunctionDefinition(from item: MemberBlockItemListSyntax.Element) -> String {
         if let functionDecl = item.decl.as(FunctionDeclSyntax.self) {
-            return ""
+            var passthroughParameters = ""
+            for parameter in functionDecl.signature.parameterClause.parameters {
+                passthroughParameters += "\(parameter.firstName): \(parameter.firstName),"
+            }
+            if passthroughParameters.count > 0 {
+                passthroughParameters.removeLast()
+            }
+            return "\(functionDecl.trimmed) { self.value.\(functionDecl.name)(\(passthroughParameters)) }\n"
         }
         return ""
     }

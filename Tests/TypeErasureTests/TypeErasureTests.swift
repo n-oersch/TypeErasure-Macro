@@ -14,35 +14,56 @@ let testMacros: [String: Macro.Type] = [
 #endif
 
 final class TypeErasureTests: XCTestCase {
-    func testMacro() throws {
+    func testSimpleProtocol() throws {
+        #if canImport(TypeErasureMacros)
+        assertMacroExpansion(
+            """
+            @TypeErasure([ModelA, ModelB])
+            protocol Proto: Equatable {
+            }
+            """,
+            expandedSource:
+            """
+            protocol Proto: Equatable {
+            }
+
+            enum AnyProto {
+              case modelA(ModelA)
+              case modelB(ModelB)
+            
+              var value: any Proto {
+                  switch self {
+                  case .modelA(let model as any Proto),
+                  .modelB(let model as any Proto):
+                      return model
+                  }
+              }
+            
+            
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testVariableProtocol() throws {
         #if canImport(TypeErasureMacros)
         assertMacroExpansion(
             """
             @TypeErasure([ModelA, ModelB])
             protocol Proto: Equatable {
                 var name: String { get set }
-                func test(param: String) -> Bool
-            }
-            struct ModelA: Proto {
-                func test(param: String) -> Bool {
-                    return true
-                }
-                var name = "ModelA"
-                var x = 1
-            }
-            struct ModelB: Proto {
-                func test(param: String) -> Bool {
-                    return false
-                }
-                var name = "ModelB"
-                var x = "10"
+                var date: Double { get set }
             }
             """,
             expandedSource:
             """
             protocol Proto: Equatable {
                 var name: String { get set }
-                func test(param: String) -> Bool
+                var date: Double { get set }
             }
             
             enum AnyProto {
@@ -60,21 +81,114 @@ final class TypeErasureTests: XCTestCase {
               var name: String {
                   self.value.name
               }
+              var date: Double {
+                  self.value.date
+              }
+            }
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testFunctionProtocol() throws {
+        #if canImport(TypeErasureMacros)
+        assertMacroExpansion(
+            """
+            @TypeErasure([ModelA, ModelB])
+            protocol Proto: Equatable {
+                func test()
+                func parameters(with: String)
+                func multiple(first: Bool, second: String) -> Double
+            }
+            """,
+            expandedSource:
+            """
+            protocol Proto: Equatable {
+                func test()
+                func parameters(with: String)
+                func multiple(first: Bool, second: String) -> Double
+            }
             
+            enum AnyProto {
+              case modelA(ModelA)
+              case modelB(ModelB)
+            
+              var value: any Proto {
+                  switch self {
+                  case .modelA(let model as any Proto),
+                  .modelB(let model as any Proto):
+                      return model
+                  }
+              }
+            
+              func test() {
+                  self.value.test()
+              }
+              func parameters(with: String) {
+                  self.value.parameters(with: with)
+              }
+              func multiple(first: Bool, second: String) -> Double {
+                  self.value.multiple(first: first, second: second)
+              }
             }
-            struct ModelA: Proto {
-                func test(param: String) -> Bool {
-                    return true
-                }
-                var name = "ModelA"
-                var x = 1
+            """,
+            macros: testMacros
+        )
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testAll() throws {
+        #if canImport(TypeErasureMacros)
+        assertMacroExpansion(
+            """
+            @TypeErasure([ModelA, ModelB])
+            protocol Proto: Equatable {
+                var name: String { get set }
+                var date: Double { get set }
+                
+                func parameters(with: String)
+                func multiple(first: Bool, second: String) -> Double
             }
-            struct ModelB: Proto {
-                func test(param: String) -> Bool {
-                    return false
-                }
-                var name = "ModelB"
-                var x = "10"
+            """,
+            expandedSource:
+            """
+            protocol Proto: Equatable {
+                var name: String { get set }
+                var date: Double { get set }
+                
+                func parameters(with: String)
+                func multiple(first: Bool, second: String) -> Double
+            }
+            
+            enum AnyProto {
+              case modelA(ModelA)
+              case modelB(ModelB)
+            
+              var value: any Proto {
+                  switch self {
+                  case .modelA(let model as any Proto),
+                  .modelB(let model as any Proto):
+                      return model
+                  }
+              }
+            
+              var name: String {
+                  self.value.name
+              }
+              var date: Double {
+                  self.value.date
+              }
+              func parameters(with: String) {
+                  self.value.parameters(with: with)
+              }
+              func multiple(first: Bool, second: String) -> Double {
+                  self.value.multiple(first: first, second: second)
+              }
             }
             """,
             macros: testMacros
