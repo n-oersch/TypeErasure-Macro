@@ -8,7 +8,7 @@ protocol ToursProto {
     var name: String { get set }
 }
 
-/// Creates a TypeErased `Any[Protocol]` enum with all values of the Protocol and cases for all given types
+/// Creates a TypeErased `Any[Protocol]` enum with all values of the Protocol and cases for all given types. The given Types need to implement this protocol!
 ///
 /// Example:
 /// ```
@@ -65,16 +65,14 @@ public struct TypeErasureMacro: PeerMacro {
         enum \(erasedName) {
           \(enumCasesDefinition(with: listOfTypes))
         
-          var value: any \(protocolName) {
-            switch self {
-            case \(enumsExtractedModel(with: listOfTypes, as: protocolName)):
-              return model
-            }
-          }
+          \(protocolVarDefinition(with: listOfTypes, as: protocolName))
+        
+          \(passthroughMembersDefinitions(from: originProtocol.memberBlock.members))
         }
         """]
     }
     
+    /// creates the enum definition of all Types with its type as parameter
     private static func enumCasesDefinition(with listOfTypes: [String]) -> TokenSyntax {
         var enums = ""
         for typeName in listOfTypes {
@@ -84,13 +82,41 @@ public struct TypeErasureMacro: PeerMacro {
         return TokenSyntax(stringLiteral: enums)
     }
     
-    private static func enumsExtractedModel(with listOfTypes: [String], as type: TokenSyntax) -> TokenSyntax {
-        var enums = ""
+    /// creates the definition of the `value` member, that returns in any enum case the parameter as the protocol type
+    private static func protocolVarDefinition(with listOfTypes: [String], as type: TokenSyntax) -> TokenSyntax {
+        var definition = "var value: any \(type) {\n"
+        definition += "switch self {\ncase"
         for typeName in listOfTypes {
-            enums += ".\(enumName(of: typeName))(let model as any \(type)),\n"
+            definition += ".\(enumName(of: typeName))(let model as any \(type)),\n"
         }
-        enums.removeLast(2)
-        return TokenSyntax(stringLiteral: enums)
+        definition.removeLast(2)
+        definition += ":\nreturn model\n}\n}"
+        return TokenSyntax(stringLiteral: definition)
+    }
+    
+    private static func passthroughMembersDefinitions(from protocolMembers: MemberBlockItemListSyntax) -> TokenSyntax {
+        var protocolDefinitions = ""
+        for memberItem in protocolMembers {
+            protocolDefinitions += passthroughVariableDefinition(from: memberItem)
+        }
+        return TokenSyntax(stringLiteral: protocolDefinitions)
+    }
+    /// Creates a Definition of a computed variable with the same name as in the protocol, that just passes through the variable from all the enum values
+    private static func passthroughVariableDefinition(from item: MemberBlockItemListSyntax.Element) -> String {
+        if let variableDecl = item.decl.as(VariableDeclSyntax.self) {
+            if let binding = variableDecl.bindings.first {
+                return "var \(binding.pattern)\(binding.typeAnnotation?.description ?? ""){ self.value.\(binding.pattern) }\n"
+            }
+        }
+        return ""
+    }
+    
+    /// Creates a Definition of a function with the same name as in the protocol, that just passes through the function from all the enum values
+    private static func buildPassthroughFunctionDefinition(from item: MemberBlockItemListSyntax.Element) -> String {
+        if let functionDecl = item.decl.as(FunctionDeclSyntax.self) {
+            return ""
+        }
+        return ""
     }
     
     private static func enumName(of typeName: String) -> String {

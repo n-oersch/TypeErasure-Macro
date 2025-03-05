@@ -20,21 +20,29 @@ final class TypeErasureTests: XCTestCase {
             """
             @TypeErasure([ModelA, ModelB])
             protocol Proto: Equatable {
-              var name: String { get set }
+                var name: String { get set }
+                func test(param: String) -> Bool
             }
             struct ModelA: Proto {
-              var name = "ModelA"
-              var x = 1
+                func test(param: String) -> Bool {
+                    return true
+                }
+                var name = "ModelA"
+                var x = 1
             }
             struct ModelB: Proto {
-              var name = "ModelB"
-              var x = "10"
+                func test(param: String) -> Bool {
+                    return false
+                }
+                var name = "ModelB"
+                var x = "10"
             }
             """,
             expandedSource:
             """
             protocol Proto: Equatable {
-              var name: String { get set }
+                var name: String { get set }
+                func test(param: String) -> Bool
             }
             
             enum AnyProto {
@@ -42,20 +50,31 @@ final class TypeErasureTests: XCTestCase {
               case modelB(ModelB)
             
               var value: any Proto {
-                switch self {
-                case .modelA(let model as any Proto),
-                .modelB(let model as any Proto):
-                  return model
-                }
+                  switch self {
+                  case .modelA(let model as any Proto),
+                  .modelB(let model as any Proto):
+                      return model
+                  }
               }
+            
+              var name: String {
+                  self.value.name
+              }
+            
             }
             struct ModelA: Proto {
-              var name = "ModelA"
-              var x = 1
+                func test(param: String) -> Bool {
+                    return true
+                }
+                var name = "ModelA"
+                var x = 1
             }
             struct ModelB: Proto {
-              var name = "ModelB"
-              var x = "10"
+                func test(param: String) -> Bool {
+                    return false
+                }
+                var name = "ModelB"
+                var x = "10"
             }
             """,
             macros: testMacros
