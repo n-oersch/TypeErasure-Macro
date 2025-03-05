@@ -9,7 +9,7 @@ import XCTest
 import TypeErasureMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "TypeErasure": TypeErasureMacro.self,
 ]
 #endif
 
@@ -18,27 +18,36 @@ final class TypeErasureTests: XCTestCase {
         #if canImport(TypeErasureMacros)
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @TypeErasure([ModelA, ModelB])
+            protocol Proto {
+              var name: String { get set }
+            }
+            struct ModelA: Proto {
+              var name = "ModelA"
+              var x = 1
+            }
+            struct ModelB: Proto {
+              var name = "ModelB"
+              var x = "10"
+            }
             """,
             expandedSource: """
-            (a + b, "a + b")
+            protocol Proto {
+              var name: String { get set }
+            }
+            enum AnyProto: Equatable {
+              case modela(ModelA)
+              case modelb(ModelB)
+            }
+            struct ModelA: Proto {
+              var name = "ModelA"
+              var x = 1
+            }
+            struct ModelB: Proto {
+              var name = "ModelB"
+              var x = "10"
+            }
             """,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
-
-    func testMacroWithStringLiteral() throws {
-        #if canImport(TypeErasureMacros)
-        assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
             macros: testMacros
         )
         #else

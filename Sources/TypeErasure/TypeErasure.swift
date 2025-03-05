@@ -7,5 +7,5 @@
 ///     #stringify(x + y)
 ///
 /// produces a tuple `(x + y, "x + y")`.
-@freestanding(expression)
-public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "TypeErasureMacros", type: "StringifyMacro")
+@attached(peer, names: prefixed(Any))
+public macro TypeErasure(_ types: [Any.Type]) = #externalMacro(module: "TypeErasureMacros", type: "TypeErasureMacro")
