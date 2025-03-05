@@ -59,22 +59,38 @@ public struct TypeErasureMacro: PeerMacro {
             return type.baseName.text
         }
         
-        let enums = buildEnumCases(with: listOfTypes)
-        let anyName = "Any\(originProtocol.name.trimmed)"
+        let protocolName = originProtocol.name.trimmed
+        let erasedName: TokenSyntax = "Any\(protocolName)"
         return ["""
-        enum \(raw: anyName) {
-          \(raw: enums)
+        enum \(erasedName) {
+          \(enumCasesDefinition(with: listOfTypes))
+        
+          var value: any \(protocolName) {
+            switch self {
+            case \(enumsExtractedModel(with: listOfTypes, as: protocolName)):
+              return model
+            }
+          }
         }
         """]
     }
     
-    private static func buildEnumCases(with listOfTypes: [String]) -> String {
+    private static func enumCasesDefinition(with listOfTypes: [String]) -> TokenSyntax {
         var enums = ""
         for typeName in listOfTypes {
             enums += "case \(enumName(of: typeName))(\(typeName))\n"
         }
         enums.removeLast()
-        return enums
+        return TokenSyntax(stringLiteral: enums)
+    }
+    
+    private static func enumsExtractedModel(with listOfTypes: [String], as type: TokenSyntax) -> TokenSyntax {
+        var enums = ""
+        for typeName in listOfTypes {
+            enums += ".\(enumName(of: typeName))(let model as any \(type)),\n"
+        }
+        enums.removeLast(2)
+        return TokenSyntax(stringLiteral: enums)
     }
     
     private static func enumName(of typeName: String) -> String {

@@ -40,6 +40,14 @@ final class TypeErasureTests: XCTestCase {
             enum AnyProto {
               case modelA(ModelA)
               case modelB(ModelB)
+            
+              var value: any Proto {
+                switch self {
+                case .modelA(let model as any Proto),
+                .modelB(let model as any Proto):
+                  return model
+                }
+              }
             }
             struct ModelA: Proto {
               var name = "ModelA"
