@@ -43,18 +43,18 @@ public struct TypeErasureMacro: PeerMacro {
                                  in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
         // check if the declaration the macro is applied to is a Protocol
         guard let originProtocol = declaration.as(ProtocolDeclSyntax.self) else {
-            fatalError("Can only be applied to a Protocol")
+            throw TypeErasureError.toProtocol
         }
         
         // the arguments need to be an array, but this should already be handled by the type-checker before resolving the macro
         guard case .argumentList(let arguments) = node.arguments,
               let argArray = arguments.first?.expression.as(ArrayExprSyntax.self)?.elements else {
-            fatalError("Please append the Types that conform to this Protocol as an array like `@TypeErasure([ModelA, ModelB])`")
+            throw TypeErasureError.usage
         }
         // the arguments should be `DeclReferenceExpr`, so references to Declarations (like types)
-        let listOfTypes = argArray.compactMap { argument in
+        let listOfTypes = try! argArray.compactMap { argument in
             guard let type = argument.expression.as(DeclReferenceExprSyntax.self) else {
-                fatalError("Argument is not a Type")
+                throw TypeErasureError.usage
             }
             return type.baseName.text
         }
