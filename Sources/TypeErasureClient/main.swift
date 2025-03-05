@@ -1,7 +1,7 @@
 import TypeErasure
 
 @TypeErasure([ModelA, ModelB])
-protocol Proto {
+protocol Proto: Equatable {
   var name: String { get set }
 }
 struct ModelA: Proto {

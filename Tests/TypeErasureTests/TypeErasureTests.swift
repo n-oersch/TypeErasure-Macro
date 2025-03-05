@@ -19,7 +19,7 @@ final class TypeErasureTests: XCTestCase {
         assertMacroExpansion(
             """
             @TypeErasure([ModelA, ModelB])
-            protocol Proto {
+            protocol Proto: Equatable {
               var name: String { get set }
             }
             struct ModelA: Proto {
@@ -31,13 +31,15 @@ final class TypeErasureTests: XCTestCase {
               var x = "10"
             }
             """,
-            expandedSource: """
-            protocol Proto {
+            expandedSource:
+            """
+            protocol Proto: Equatable {
               var name: String { get set }
             }
-            enum AnyProto: Equatable {
-              case modela(ModelA)
-              case modelb(ModelB)
+            
+            enum AnyProto {
+              case modelA(ModelA)
+              case modelB(ModelB)
             }
             struct ModelA: Proto {
               var name = "ModelA"
