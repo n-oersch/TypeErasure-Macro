@@ -31,7 +31,8 @@ final class TypeErasureTests: XCTestCase {
               case modelA(ModelA)
               case modelB(ModelB)
             
-              var value: any Proto {
+              /// the not TypeErased object as protocol type
+            var value: any Proto {
                   switch self {
                   case .modelA(let model as any Proto),
                   .modelB(let model as any Proto):
@@ -70,7 +71,8 @@ final class TypeErasureTests: XCTestCase {
               case modelA(ModelA)
               case modelB(ModelB)
             
-              var value: any Proto {
+              /// the not TypeErased object as protocol type
+            var value: any Proto {
                   switch self {
                   case .modelA(let model as any Proto),
                   .modelB(let model as any Proto):
@@ -116,7 +118,8 @@ final class TypeErasureTests: XCTestCase {
               case modelA(ModelA)
               case modelB(ModelB)
             
-              var value: any Proto {
+              /// the not TypeErased object as protocol type
+            var value: any Proto {
                   switch self {
                   case .modelA(let model as any Proto),
                   .modelB(let model as any Proto):
@@ -159,7 +162,8 @@ final class TypeErasureTests: XCTestCase {
               case modelA(ModelA)
               case modelB(ModelB)
             
-              var value: any Proto {
+              /// the not TypeErased object as protocol type
+            var value: any Proto {
                   switch self {
                   case .modelA(let model as any Proto),
                   .modelB(let model as any Proto):
