@@ -1,5 +1,5 @@
 # TypeErasure-Macro
-A Swift Macro, that creates a Type Erasure Enum from a Protocol
+A Swift Macro, that creates a Type Erased Enum from a Protocol
 
 ---
 
@@ -14,16 +14,15 @@ Type Erasure Macro to attach to a protocol with the following functionality:
 
 After importing this Package via SPM you can attach the `@TypeErasure` macro to any Protocol and pass conforming types into it as an array to create cases for each type.
 
----
 ## Example:
- ```
+ ```swift
  @TypeErasure([ModelA, ModelB])
  protocol Proto {
    var x: String { get set }
  }
  ```
  expands to the following Type-Erased Enum:
- ```
+ ```swift
  enum AnyProto {
    /// given Types conforming to Proto
    case modelA(ModelA)
