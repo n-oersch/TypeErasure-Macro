@@ -18,11 +18,11 @@ The given Types need to implement this protocol!
  expands to the following Type-Erased Enum:
  ```
  enum AnyProto {
-   // given Types conforming to Proto
+   /// given Types conforming to Proto
    case modelA(ModelA)
    case modelB(ModelB)
 
-   // underlying value as protocol
+   /// underlying value as protocol
    var value: any Proto {
      switch self {
      case .modelA(let val as any Proto),
@@ -31,7 +31,7 @@ The given Types need to implement this protocol!
      }
    }
    
-   // all members of the protocol passed through
+   /// all members of the protocol passed through
    var x: String {
      self.value.x
    }

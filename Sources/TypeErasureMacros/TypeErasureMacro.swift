@@ -98,7 +98,8 @@ public struct TypeErasureMacro: PeerMacro {
     
     /// creates the definition of the `value` member, that returns in any enum case the parameter as the protocol type
     private static func protocolVarDefinition(with listOfTypes: [String], as type: TokenSyntax) -> TokenSyntax {
-        var definition = "var value: any \(type) {\n"
+        var definition = "/// the not TypeErased object as protocol type\n"
+        definition += "var value: any \(type) {\n"
         definition += "switch self {\ncase"
         for typeName in listOfTypes {
             definition += ".\(enumName(of: typeName))(let model as any \(type)),\n"
