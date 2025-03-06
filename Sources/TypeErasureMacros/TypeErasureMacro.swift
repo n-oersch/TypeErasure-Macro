@@ -51,8 +51,8 @@ public struct TypeErasureMacro: PeerMacro {
               let argArray = arguments.first?.expression.as(ArrayExprSyntax.self)?.elements else {
             throw TypeErasureError.usage
         }
-        // the arguments should be `DeclReferenceExpr`, so references to Declarations (like types)
         let listOfTypes = try! argArray.compactMap { argument in
+            // the arguments should be `DeclReferenceExpr`, so references to Declarations (like types)
             guard let type = argument.expression.as(DeclReferenceExprSyntax.self) else {
                 throw TypeErasureError.usage
             }
@@ -68,10 +68,13 @@ public struct TypeErasureMacro: PeerMacro {
           \(protocolVarDefinition(with: listOfTypes, as: protocolName))
         
           \(passthroughMembersDefinitions(from: originProtocol.memberBlock.members))
+        
+          \(staticMapperFunction(with: listOfTypes, from: protocolName))
         }
         """]
     }
     
+    /// passes the conformances of the protocol to the type-erased enum
     private static func addedConformances(of declaration: ProtocolDeclSyntax) -> TokenSyntax {
         guard let conformanceTypes = declaration.inheritanceClause?.inheritedTypes else {
             // protocol doesn't has any special conformances
@@ -143,6 +146,21 @@ public struct TypeErasureMacro: PeerMacro {
             return "\(functionDecl.trimmed) { self.value.\(functionDecl.name)(\(passthroughParameters)) }\n"
         }
         return ""
+    }
+    
+    /// creates a static mapper function to create a Type-Erased enum from a type
+    private static func staticMapperFunction(with typesList: [String], from protocolName: TokenSyntax) -> TokenSyntax {
+        var function = "/// get a Type-Erased Any\(protocolName) from a specific \(protocolName)\n"
+        function += "static func from(_ type: any \(protocolName)) -> Any\(protocolName)? {\n"
+        function += "switch type {\n"
+        for type in typesList {
+            function += "case let specificType as \(type):\n"
+            function += "return .\(enumName(of: type))(specificType)\n"
+        }
+        function += "default:\n"
+        function += "return nil\n"
+        function += "}\n}"
+        return TokenSyntax(stringLiteral: function)
     }
     
     private static func enumName(of typeName: String) -> String {

@@ -41,6 +41,18 @@ final class TypeErasureTests: XCTestCase {
               }
             
             
+            
+              /// get a Type-Erased AnyProto from a specific Proto
+            static func from(_ type: any Proto) -> AnyProto? {
+                  switch type {
+                  case let specificType as ModelA:
+                      return .modelA(specificType)
+                  case let specificType as ModelB:
+                      return .modelB(specificType)
+                  default:
+                      return nil
+                  }
+              }
             }
             """,
             macros: testMacros
@@ -85,6 +97,18 @@ final class TypeErasureTests: XCTestCase {
               }
               var date: Double {
                   self.value.date
+              }
+            
+              /// get a Type-Erased AnyProto from a specific Proto
+            static func from(_ type: any Proto) -> AnyProto? {
+                  switch type {
+                  case let specificType as ModelA:
+                      return .modelA(specificType)
+                  case let specificType as ModelB:
+                      return .modelB(specificType)
+                  default:
+                      return nil
+                  }
               }
             }
             """,
@@ -136,6 +160,18 @@ final class TypeErasureTests: XCTestCase {
               func multiple(first: Bool, second: String) -> Double {
                   self.value.multiple(first: first, second: second)
               }
+            
+              /// get a Type-Erased AnyProto from a specific Proto
+            static func from(_ type: any Proto) -> AnyProto? {
+                  switch type {
+                  case let specificType as ModelA:
+                      return .modelA(specificType)
+                  case let specificType as ModelB:
+                      return .modelB(specificType)
+                  default:
+                      return nil
+                  }
+              }
             }
             """,
             macros: testMacros
@@ -172,6 +208,18 @@ final class TypeErasureTests: XCTestCase {
               }
             
             
+            
+              /// get a Type-Erased AnyProto from a specific Proto
+            static func from(_ type: any Proto) -> AnyProto? {
+                  switch type {
+                  case let specificType as ModelA:
+                      return .modelA(specificType)
+                  case let specificType as ModelB:
+                      return .modelB(specificType)
+                  default:
+                      return nil
+                  }
+              }
             }
             """,
             macros: testMacros
@@ -228,6 +276,18 @@ final class TypeErasureTests: XCTestCase {
               }
               func multiple(first: Bool, second: String) -> Double {
                   self.value.multiple(first: first, second: second)
+              }
+            
+              /// get a Type-Erased AnyProto from a specific Proto
+            static func from(_ type: any Proto) -> AnyProto? {
+                  switch type {
+                  case let specificType as ModelA:
+                      return .modelA(specificType)
+                  case let specificType as ModelB:
+                      return .modelB(specificType)
+                  default:
+                      return nil
+                  }
               }
             }
             """,
